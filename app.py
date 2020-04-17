@@ -13,7 +13,7 @@ from flask import (
     current_app
 )
 from celery import Celery
-from flask.ext.socketio import (
+from flask_socketio import (
     SocketIO,
     emit,
     disconnect
@@ -26,8 +26,14 @@ app.clients = {}
 app.config['SECRET_KEY'] = 'top-secret!'
 
 # Celery configuration
+
+# Redis
 app.config['CELERY_BROKER_URL'] = 'redis://localhost:6379/0'
 app.config['CELERY_RESULT_BACKEND'] = 'redis://localhost:6379/0'
+
+# RabbitMQ
+# app.config['CELERY_BROKER_URL'] = 'amqp://localhost://'
+# app.config['CELERY_RESULT_BACKEND'] = 'rpc://'
 
 # SocketIO
 socketio = SocketIO(app)
@@ -89,7 +95,7 @@ def event():
     data = request.json
     ns = app.clients.get(userid)
     if ns and data:
-        ns.emit('celerystatus', data)
+        socketio.emit('celerystatus', data, namespace=ns)
         return 'ok'
     return 'error', 404
 
